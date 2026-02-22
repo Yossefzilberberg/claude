@@ -6,6 +6,7 @@ const { runSslCheck } = require('./checks/ssl');
 const { runDnsCheck } = require('./checks/dns');
 const { runTechDetection } = require('./checks/tech');
 const { runPortCheck } = require('./checks/ports');
+const { runMalwareCheck } = require('./checks/malware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -62,12 +63,13 @@ app.post('/api/scan', async (req, res) => {
   const hostname = parsed.hostname;
 
   try {
-    const [headers, ssl, dns, tech, ports] = await Promise.allSettled([
+    const [headers, ssl, dns, tech, ports, malware] = await Promise.allSettled([
       runHeadersCheck(targetUrl),
       runSslCheck(hostname),
       runDnsCheck(hostname),
       runTechDetection(targetUrl),
       runPortCheck(hostname),
+      runMalwareCheck(targetUrl, hostname),
     ]);
 
     const results = {
@@ -78,6 +80,7 @@ app.post('/api/scan', async (req, res) => {
       dns: dns.status === 'fulfilled' ? dns.value : { error: dns.reason?.message },
       tech: tech.status === 'fulfilled' ? tech.value : { error: tech.reason?.message },
       ports: ports.status === 'fulfilled' ? ports.value : { error: ports.reason?.message },
+      malware: malware.status === 'fulfilled' ? malware.value : { error: malware.reason?.message },
     };
 
     res.json(results);
@@ -147,7 +150,19 @@ app.post('/api/check/ports', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
+app.post('/api/check/malware', async (req, res) => {
+  const { url } = req.body;
+  const parsed = normalizeUrl(url);
+  if (!parsed) return res.status(400).json({ error: 'Invalid URL' });
+  try {
+    const result = await runMalwareCheck(parsed.href, parsed.hostname);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

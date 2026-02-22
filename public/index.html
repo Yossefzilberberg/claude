@@ -3,858 +3,681 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>כלי בדיקות אבטחה לאתרים</title>
+  <title>SecureScope — כלי בדיקות אבטחה</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
     :root {
-      --bg-primary: #0f172a;
-      --bg-secondary: #1e293b;
-      --bg-card: #1e293b;
-      --border-color: #334155;
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --info: #06b6d4;
+      --bg: #020408;
+      --surface: rgba(255,255,255,0.03);
+      --surface-hover: rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.08);
+      --border-bright: rgba(255,255,255,0.15);
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #334155;
+      --accent: #6366f1;
+      --accent2: #06b6d4;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 20px;
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
     }
 
-    header {
-      text-align: center;
-      padding: 40px 0 30px;
+    body::after {
+      content: '';
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80vw;
+      height: 60vh;
+      background: radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    header h1 {
-      font-size: 2.2rem;
-      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; position: relative; z-index: 1; }
+
+    /* HEADER */
+    header { padding: 60px 0 48px; text-align: center; }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.25);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #a5b4fc;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .logo-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #6366f1;
+      box-shadow: 0 0 8px #6366f1;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 30%, #a5b4fc 70%, #67e8f9 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }
 
-    header p {
-      color: var(--text-secondary);
-      font-size: 1.05rem;
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
     }
+
+    /* SEARCH */
+    .search-wrap { max-width: 660px; margin: 40px auto 0; }
 
     .search-box {
       display: flex;
-      gap: 12px;
-      max-width: 650px;
-      margin: 30px auto;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-bright);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .search-box:focus-within {
+      border-color: rgba(99,102,241,0.6);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 0 30px rgba(99,102,241,0.08);
+    }
+
+    .search-icon {
+      display: flex;
+      align-items: center;
+      padding: 0 16px 0 20px;
+      color: var(--text-muted);
+      flex-shrink: 0;
     }
 
     .search-box input {
       flex: 1;
-      padding: 14px 20px;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
-      background: var(--bg-secondary);
-      color: var(--text-primary);
-      font-size: 1.05rem;
+      padding: 16px 4px;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
       outline: none;
-      transition: border-color 0.3s;
       direction: ltr;
-      text-align: left;
+      min-width: 0;
     }
 
-    .search-box input:focus {
-      border-color: var(--accent);
-    }
-
-    .search-box input::placeholder {
-      color: var(--text-secondary);
-    }
+    .search-box input::placeholder { color: var(--text-dim); }
 
     .btn-scan {
-      padding: 14px 32px;
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      color: white;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
       border: none;
-      border-radius: 12px;
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       font-weight: 600;
+      font-family: 'Inter', sans-serif;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: all 0.2s;
+      flex-shrink: 0;
     }
 
-    .btn-scan:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    .btn-scan:hover:not(:disabled) {
+      background: linear-gradient(135deg, #818cf8, #6366f1);
+      box-shadow: 0 0 20px rgba(99,102,241,0.4);
     }
 
-    .btn-scan:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
+    .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 40px;
-    }
-
-    .loading.active {
-      display: block;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid var(--border-color);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading p {
-      color: var(--text-secondary);
-      font-size: 1rem;
-    }
-
+    /* ERROR */
     .error-msg {
       display: none;
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
       color: #fca5a5;
-      padding: 14px 20px;
+      padding: 12px 18px;
       border-radius: 10px;
-      margin: 20px auto;
-      max-width: 650px;
+      margin-top: 14px;
+      font-size: 0.9rem;
       text-align: center;
     }
+    .error-msg.active { display: block; }
 
-    .error-msg.active {
-      display: block;
-    }
+    /* TERMINAL */
+    .terminal { display: none; margin-top: 40px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .terminal.active { display: block; }
 
-    #results {
-      display: none;
-    }
-
-    #results.active {
-      display: block;
-    }
-
-    .overall-score {
-      text-align: center;
-      padding: 30px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      margin-bottom: 24px;
-    }
-
-    .score-circle {
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      display: inline-flex;
+    .terminal-bar {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-      position: relative;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .t-red { background: #ff5f56; }
+    .t-yellow { background: #ffbd2e; }
+    .t-green { background: #27c93f; }
+    .terminal-title { margin-right: auto; font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+    .terminal-body {
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+      min-height: 160px;
     }
 
-    .score-circle::before {
-      content: '';
-      position: absolute;
-      inset: 0;
+    .t-line { display: flex; align-items: center; gap: 10px; opacity: 0; animation: fadeIn 0.3s forwards; }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .t-spinner {
+      width: 12px; height: 12px;
+      border: 2px solid rgba(6,182,212,0.3);
+      border-top-color: var(--accent2);
       border-radius: 50%;
-      padding: 5px;
-      background: conic-gradient(var(--score-color) calc(var(--score) * 3.6deg), var(--border-color) 0);
-      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      mask-composite: exclude;
-      -webkit-mask-composite: xor;
+      animation: spin 0.6s linear infinite;
+      flex-shrink: 0;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .overall-score h2 {
-      font-size: 1.1rem;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-    }
+    /* RESULTS */
+    #results { display: none; margin-top: 48px; }
+    #results.active { display: block; }
 
-    .target-url {
-      color: var(--accent);
-      font-size: 0.95rem;
-      direction: ltr;
-    }
-
-    .section {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      margin-bottom: 20px;
+    .score-hero {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 40px;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 40px;
+      margin-bottom: 28px;
+      position: relative;
       overflow: hidden;
     }
 
-    .section-header {
-      display: flex;
-      justify-content: space-between;
+    .score-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -10%;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, var(--hero-glow, rgba(99,102,241,0.1)) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .score-ring-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+    .score-ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .score-ring-bg { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
+    .score-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 339; stroke-dashoffset: 339; transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1), stroke 0.5s; }
+
+    .score-num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; line-height: 1; }
+    .score-num small { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; margin-top: 4px; }
+
+    .score-info h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 8px; }
+    .target-chip {
+      display: inline-flex;
       align-items: center;
-      padding: 18px 24px;
+      gap: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--accent2);
+      margin-bottom: 20px;
+      direction: ltr;
+    }
+
+    .stat-row { display: flex; gap: 20px; flex-wrap: wrap; }
+    .stat-item { display: flex; flex-direction: column; gap: 2px; }
+    .stat-item .val { font-size: 1.4rem; font-weight: 700; }
+    .stat-item .lbl { font-size: 0.78rem; color: var(--text-muted); }
+
+    /* CARDS */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
       cursor: pointer;
-      transition: background 0.2s;
+      user-select: none;
     }
 
-    .section-header:hover {
-      background: rgba(255, 255, 255, 0.03);
-    }
+    .card-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .card-title { flex: 1; font-weight: 600; font-size: 0.95rem; }
+    .card-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 
-    .section-header h3 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.1rem;
-    }
+    .badge-safe { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+    .badge-warn { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+    .badge-danger { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .badge-info { background: rgba(6,182,212,0.1); color: #67e8f9; border: 1px solid rgba(6,182,212,0.15); }
 
-    .section-header .icon {
-      font-size: 1.3rem;
-    }
+    .card-chevron { color: var(--text-dim); transition: transform 0.3s; flex-shrink: 0; }
+    .card.open .card-chevron { transform: rotate(180deg); }
 
-    .section-score {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
+    .card-body { display: none; padding: 0 20px 20px; border-top: 1px solid var(--border); }
+    .card.open .card-body { display: block; }
 
-    .score-high { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-    .score-medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-    .score-low { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .check-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .check-row:last-child { border-bottom: none; }
 
-    .section-body {
-      display: none;
-      padding: 0 24px 20px;
-    }
+    .check-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; margin-top: 1px; }
+    .ci-safe { background: rgba(16,185,129,0.15); color: #34d399; }
+    .ci-fail { background: rgba(239,68,68,0.15); color: #f87171; }
+    .ci-warn { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .ci-info { background: rgba(6,182,212,0.1); color: #67e8f9; }
 
-    .section.open .section-body {
-      display: block;
-    }
+    .check-text h4 { font-size: 0.88rem; font-weight: 500; margin-bottom: 3px; }
+    .check-text p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
+    .code-chip { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 3px 8px; border-radius: 5px; color: var(--accent2); margin-top: 5px; word-break: break-all; direction: ltr; text-align: left; }
 
-    .check-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-    }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; padding-top: 14px; }
+    .info-cell { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+    .info-cell label { display: block; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; }
+    .info-cell span { font-size: 0.88rem; font-weight: 500; direction: ltr; display: block; text-align: left; }
 
-    .check-item:last-child {
-      border-bottom: none;
-    }
+    .port-list { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; }
+    .port-row { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
+    .port-num { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700; min-width: 50px; direction: ltr; }
+    .port-info { flex: 1; }
+    .port-info strong { font-size: 0.85rem; }
+    .port-info p { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 
-    .check-status {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      font-size: 0.85rem;
-      margin-top: 2px;
-    }
+    .tech-wrap { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; }
+    .tech-tag { display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); color: #a5b4fc; padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 500; }
 
-    .status-pass { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-    .status-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-    .status-warn { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-    .status-info { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+    .threat-meter-wrap { padding-top: 16px; margin-bottom: 16px; }
+    .threat-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.82rem; color: var(--text-muted); }
+    .threat-bar-bg { height: 8px; border-radius: 4px; background: rgba(255,255,255,0.06); overflow: hidden; }
+    .threat-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease, background 0.5s; }
 
-    .check-details h4 {
-      font-size: 0.95rem;
-      margin-bottom: 4px;
-    }
-
-    .check-details p {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      line-height: 1.5;
-    }
-
-    .check-value {
-      direction: ltr;
-      text-align: left;
-      background: rgba(0, 0, 0, 0.2);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 0.8rem;
-      color: var(--info);
-      margin-top: 6px;
-      word-break: break-all;
-      display: inline-block;
-      max-width: 100%;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin: 2px;
-    }
-
-    .badge-tech { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
-    .badge-open { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-    .badge-closed { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
-    .badge-filtered { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-
-    .port-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 10px;
-    }
-
-    .port-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: rgba(0, 0, 0, 0.15);
-      border-radius: 10px;
-    }
-
-    .port-number {
-      font-family: monospace;
-      font-weight: 700;
-      font-size: 0.95rem;
-      min-width: 55px;
-      direction: ltr;
-    }
-
-    .ssl-info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .ssl-info-item {
-      background: rgba(0, 0, 0, 0.15);
-      padding: 12px 16px;
-      border-radius: 10px;
-    }
-
-    .ssl-info-item label {
-      display: block;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-      margin-bottom: 4px;
-    }
-
-    .ssl-info-item span {
-      font-weight: 600;
-      font-size: 0.95rem;
-      direction: ltr;
-      display: block;
-      text-align: left;
-    }
-
-    .dns-records {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 10px;
-    }
-
-    .dns-record {
-      background: rgba(0, 0, 0, 0.15);
-      padding: 12px 16px;
-      border-radius: 10px;
-    }
-
-    .dns-record label {
-      display: block;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-      margin-bottom: 6px;
-    }
-
-    .dns-record .value {
-      font-family: monospace;
-      font-size: 0.85rem;
-      direction: ltr;
-      text-align: left;
-      word-break: break-all;
-    }
-
-    .info-leak-item {
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      padding: 10px 16px;
-      border-radius: 10px;
-      margin-bottom: 8px;
-    }
-
-    .timestamp {
-      text-align: center;
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      margin-top: 20px;
-      padding-bottom: 40px;
-    }
-
-    .arrow {
-      transition: transform 0.3s;
-      color: var(--text-secondary);
-    }
-
-    .section.open .arrow {
-      transform: rotate(180deg);
-    }
+    .footer { text-align: center; color: var(--text-dim); font-size: 0.8rem; margin-top: 60px; }
 
     @media (max-width: 640px) {
-      header h1 { font-size: 1.6rem; }
-      .search-box { flex-direction: column; }
-      .btn-scan { width: 100%; }
-      .port-grid, .ssl-info-grid, .dns-records { grid-template-columns: 1fr; }
+      .score-hero { grid-template-columns: 1fr; text-align: center; padding: 28px 24px; }
+      .score-ring-wrap { margin: 0 auto; }
+      .stat-row { justify-content: center; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr; }
+      .search-box { flex-direction: column; border-radius: 14px; }
+      .btn-scan { border-radius: 0 0 12px 12px; padding: 14px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>&#128737; כלי בדיקות אבטחה לאתרים</h1>
-      <p>בדוק את רמת האבטחה של האתר שלך - Headers, SSL, DNS, פורטים וזיהוי טכנולוגיות</p>
-    </header>
+<div class="wrap">
+  <header>
+    <div class="logo-badge"><span class="dot"></span>SecureScope v2.0</div>
+    <h1>בדיקות אבטחה<br>מקצועיות לאתרים</h1>
+    <p class="subtitle">סריקה מלאה: Headers · SSL · DNS · פורטים · טכנולוגיות · איתור נוזקות</p>
+  </header>
 
+  <div class="search-wrap">
     <div class="search-box">
-      <input type="text" id="urlInput" placeholder="example.com" autocomplete="off">
+      <span class="search-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </span>
+      <input type="text" id="urlInput" placeholder="example.com" autocomplete="off" spellcheck="false">
       <button class="btn-scan" id="scanBtn" onclick="startScan()">סרוק עכשיו</button>
     </div>
-
     <div class="error-msg" id="errorMsg"></div>
-
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <p>סורק את האתר... אנא המתן</p>
-    </div>
-
-    <div id="results">
-      <div class="overall-score" id="overallScore"></div>
-      <div id="sectionsContainer"></div>
-      <div class="timestamp" id="timestamp"></div>
-    </div>
   </div>
 
-  <script>
-    // Enter key triggers scan
-    document.getElementById('urlInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') startScan();
+  <div class="terminal" id="terminal">
+    <div class="terminal-bar">
+      <span class="terminal-dot t-red"></span>
+      <span class="terminal-dot t-yellow"></span>
+      <span class="terminal-dot t-green"></span>
+      <span class="terminal-title">securescope — scan</span>
+    </div>
+    <div class="terminal-body" id="terminalBody"></div>
+  </div>
+
+  <div id="results">
+    <div class="score-hero" id="scoreHero"></div>
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="footer" id="footer"></div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') startScan(); });
+
+  const STEPS = [
+    { label: 'בודק Security Headers...' },
+    { label: 'מנתח תעודת SSL/TLS...' },
+    { label: 'סורק רשומות DNS...' },
+    { label: 'מזהה טכנולוגיות...' },
+    { label: 'סורק פורטים פתוחים...' },
+    { label: 'בודק נוזקות ואיומים...' },
+  ];
+
+  function esc(t) {
+    if (!t) return '';
+    const d = document.createElement('div');
+    d.textContent = String(t);
+    return d.innerHTML;
+  }
+
+  function scoreColor(s) { return s >= 75 ? '#10b981' : s >= 45 ? '#f59e0b' : '#ef4444'; }
+  function scoreLabel(s) { return s >= 75 ? 'בטוח' : s >= 45 ? 'בינוני' : 'בסיכון'; }
+  function badgeClass(s) { return s >= 75 ? 'badge-safe' : s >= 45 ? 'badge-warn' : 'badge-danger'; }
+
+  function showTerminal(url) {
+    const terminal = document.getElementById('terminal');
+    const body = document.getElementById('terminalBody');
+    terminal.classList.add('active');
+    body.innerHTML = `<div class="t-line" style="color:#a5b4fc">$ securescope scan <span style="color:#67e8f9;font-family:monospace">${esc(url)}</span></div>`;
+    STEPS.forEach((step, i) => {
+      setTimeout(() => {
+        body.innerHTML += `<div class="t-line" style="animation-delay:0ms;color:#06b6d4"><span class="t-spinner"></span> ${step.label}</div>`;
+      }, i * 500 + 200);
+    });
+  }
+
+  function hideTerminal() { document.getElementById('terminal').classList.remove('active'); }
+
+  async function startScan() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) return;
+    const errorMsg = document.getElementById('errorMsg');
+    const results = document.getElementById('results');
+    const scanBtn = document.getElementById('scanBtn');
+    errorMsg.classList.remove('active');
+    results.classList.remove('active');
+    scanBtn.disabled = true;
+    scanBtn.textContent = 'סורק...';
+    showTerminal(url);
+    try {
+      const resp = await fetch('/api/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Scan failed');
+      hideTerminal();
+      renderResults(data);
+      results.classList.add('active');
+    } catch (err) {
+      hideTerminal();
+      errorMsg.textContent = err.message || 'שגיאה בסריקה. נסה שוב.';
+      errorMsg.classList.add('active');
+    } finally {
+      scanBtn.disabled = false;
+      scanBtn.textContent = 'סרוק עכשיו';
+    }
+  }
+
+  function renderResults(data) {
+    const scores = [];
+    if (data.headers?.score != null) scores.push(data.headers.score);
+    if (data.ssl?.score != null)     scores.push(data.ssl.score);
+    if (data.dns?.score != null)     scores.push(data.dns.score);
+    if (data.ports?.score != null)   scores.push(data.ports.score);
+    if (data.malware?.score != null) scores.push(data.malware.score);
+    const overall = scores.length ? Math.round(scores.reduce((a,b) => a+b,0) / scores.length) : 0;
+    const color = scoreColor(overall);
+    const offset = 339 - (overall / 100) * 339;
+    const glowRgb = overall >= 75 ? '16,185,129' : overall >= 45 ? '245,158,11' : '239,68,68';
+
+    const hero = document.getElementById('scoreHero');
+    hero.style.setProperty('--hero-glow', `rgba(${glowRgb},0.12)`);
+    hero.innerHTML = `
+      <div class="score-ring-wrap">
+        <svg viewBox="0 0 120 120">
+          <circle class="score-ring-bg" cx="60" cy="60" r="54"/>
+          <circle class="score-ring-fill" id="scoreRing" cx="60" cy="60" r="54" stroke="${color}"/>
+        </svg>
+        <div class="score-num" style="color:${color}">
+          <span id="scoreCounter">0</span>
+          <small>${scoreLabel(overall)}</small>
+        </div>
+      </div>
+      <div class="score-info">
+        <h2>ציון אבטחה כולל</h2>
+        <div class="target-chip">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          ${esc(data.target)}
+        </div>
+        <div class="stat-row">
+          ${data.headers?.passed != null ? `<div class="stat-item"><span class="val" style="color:#10b981">${data.headers.passed}/${data.headers.totalChecks}</span><span class="lbl">Headers</span></div>` : ''}
+          ${data.ssl?.valid != null ? `<div class="stat-item"><span class="val" style="color:${data.ssl.valid?'#10b981':'#ef4444'}">${data.ssl.valid?'תקין':'לא תקין'}</span><span class="lbl">SSL</span></div>` : ''}
+          ${data.ports?.openPorts != null ? `<div class="stat-item"><span class="val" style="color:${data.ports.openPorts>3?'#f59e0b':'#10b981'}">${data.ports.openPorts}</span><span class="lbl">פורטים פתוחים</span></div>` : ''}
+          ${data.malware?.threatLevel != null ? `<div class="stat-item"><span class="val" style="color:${data.malware.threatLevel==='safe'?'#10b981':data.malware.threatLevel==='suspicious'?'#f59e0b':'#ef4444'}">${data.malware.threatLevel==='safe'?'נקי':data.malware.threatLevel==='suspicious'?'חשוד':'זדוני'}</span><span class="lbl">נוזקות</span></div>` : ''}
+        </div>
+      </div>`;
+
+    setTimeout(() => {
+      document.getElementById('scoreRing').style.strokeDashoffset = offset;
+      animateCount('scoreCounter', 0, overall, 1200);
+    }, 50);
+
+    const grid = document.getElementById('cardsGrid');
+    grid.innerHTML = '';
+    if (data.malware && !data.malware.error) grid.innerHTML += renderMalwareCard(data.malware);
+    if (data.headers && !data.headers.error) grid.innerHTML += renderHeadersCard(data.headers);
+    if (data.ssl && !data.ssl.error)         grid.innerHTML += renderSslCard(data.ssl);
+    if (data.dns && !data.dns.error)         grid.innerHTML += renderDnsCard(data.dns);
+    if (data.ports && !data.ports.error)     grid.innerHTML += renderPortsCard(data.ports);
+    if (data.tech && !data.tech.error)       grid.innerHTML += renderTechCard(data.tech);
+
+    document.querySelectorAll('.card-header').forEach(h => {
+      h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
     });
 
-    async function startScan() {
-      const url = document.getElementById('urlInput').value.trim();
-      if (!url) return;
+    document.getElementById('footer').textContent = `סריקה בוצעה: ${new Date(data.timestamp).toLocaleString('he-IL')}`;
+  }
 
-      const loading = document.getElementById('loading');
-      const results = document.getElementById('results');
-      const errorMsg = document.getElementById('errorMsg');
-      const scanBtn = document.getElementById('scanBtn');
-
-      errorMsg.classList.remove('active');
-      results.classList.remove('active');
-      loading.classList.add('active');
-      scanBtn.disabled = true;
-      scanBtn.textContent = 'סורק...';
-
-      try {
-        const response = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Scan failed');
-        }
-
-        loading.classList.remove('active');
-        renderResults(data);
-        results.classList.add('active');
-      } catch (err) {
-        loading.classList.remove('active');
-        errorMsg.textContent = err.message || 'שגיאה בסריקה. נסה שוב.';
-        errorMsg.classList.add('active');
-      } finally {
-        scanBtn.disabled = false;
-        scanBtn.textContent = 'סרוק עכשיו';
-      }
+  function animateCount(id, from, to, duration) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / duration, 1);
+      el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - t, 3)));
+      if (t < 1) requestAnimationFrame(step);
     }
+    requestAnimationFrame(step);
+  }
 
-    function getScoreClass(score) {
-      if (score >= 70) return 'score-high';
-      if (score >= 40) return 'score-medium';
-      return 'score-low';
+  function chevron() {
+    return `<svg class="card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+  }
+
+  function renderMalwareCard(m) {
+    const color = m.threatLevel === 'safe' ? '#10b981' : m.threatLevel === 'suspicious' ? '#f59e0b' : '#ef4444';
+    const label = m.threatLevel === 'safe' ? 'נקי' : m.threatLevel === 'suspicious' ? 'חשוד' : 'זדוני';
+    const bclass = m.threatLevel === 'safe' ? 'badge-safe' : m.threatLevel === 'suspicious' ? 'badge-warn' : 'badge-danger';
+    const glowRgb = m.threatLevel === 'safe' ? '16,185,129' : m.threatLevel === 'suspicious' ? '245,158,11' : '239,68,68';
+    let rows = '';
+    for (const r of (m.results||[])) {
+      const ci = r.status==='safe'?'ci-safe':r.status==='danger'?'ci-fail':r.status==='warning'?'ci-warn':'ci-info';
+      const icon = r.status==='safe'?'✓':r.status==='danger'?'✗':r.status==='warning'?'⚠':'ℹ';
+      const details = Array.isArray(r.detail)&&r.detail.length ? `<p>${r.detail.map(esc).join(' · ')}</p>` : '';
+      rows += `<div class="check-row"><div class="check-icon ${ci}">${icon}</div><div class="check-text"><h4>${esc(r.check)}</h4><p>${esc(r.message)}</p>${details}</div></div>`;
     }
-
-    function getScoreColor(score) {
-      if (score >= 70) return '#22c55e';
-      if (score >= 40) return '#f59e0b';
-      return '#ef4444';
-    }
-
-    function renderResults(data) {
-      // Calculate overall score
-      const scores = [];
-      if (data.headers && !data.headers.error) scores.push(data.headers.score);
-      if (data.ssl && !data.ssl.error) scores.push(data.ssl.score);
-      if (data.dns && !data.dns.error) scores.push(data.dns.score);
-      if (data.ports && !data.ports.error) scores.push(data.ports.score);
-      const overall = scores.length > 0
-        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-        : 0;
-
-      const color = getScoreColor(overall);
-      document.getElementById('overallScore').innerHTML = `
-        <div class="score-circle" style="--score: ${overall}; --score-color: ${color}; color: ${color}">
-          ${overall}%
+    const barColor = color;
+    return `<div class="card open">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(${glowRgb},0.12)">🛡️</div>
+        <span class="card-title">בדיקת נוזקות ואיומים</span>
+        <span class="card-badge ${bclass}">${label}</span>
+        ${chevron()}
+      </div>
+      <div class="card-body">
+        <div class="threat-meter-wrap">
+          <div class="threat-label"><span>רמת ביטחון</span><span style="color:${barColor}">${m.score}%</span></div>
+          <div class="threat-bar-bg"><div class="threat-bar-fill" style="width:${m.score}%;background:${barColor}"></div></div>
         </div>
-        <h2>ציון אבטחה כולל</h2>
-        <div class="target-url">${escapeHtml(data.target)}</div>
-      `;
+        ${rows}
+      </div>
+    </div>`;
+  }
 
-      const container = document.getElementById('sectionsContainer');
-      container.innerHTML = '';
-
-      // Headers section
-      if (data.headers && !data.headers.error) {
-        container.innerHTML += renderHeadersSection(data.headers);
-      }
-
-      // SSL section
-      if (data.ssl && !data.ssl.error) {
-        container.innerHTML += renderSslSection(data.ssl);
-      }
-
-      // DNS section
-      if (data.dns && !data.dns.error) {
-        container.innerHTML += renderDnsSection(data.dns);
-      }
-
-      // Ports section
-      if (data.ports && !data.ports.error) {
-        container.innerHTML += renderPortsSection(data.ports);
-      }
-
-      // Tech section
-      if (data.tech && !data.tech.error) {
-        container.innerHTML += renderTechSection(data.tech);
-      }
-
-      // Add click handlers for sections
-      document.querySelectorAll('.section-header').forEach((header) => {
-        header.addEventListener('click', () => {
-          header.parentElement.classList.toggle('open');
-        });
-      });
-
-      document.getElementById('timestamp').textContent =
-        `סריקה בוצעה ב: ${new Date(data.timestamp).toLocaleString('he-IL')}`;
+  function renderHeadersCard(h) {
+    let rows = '';
+    for (const r of h.results) {
+      rows += `<div class="check-row">
+        <div class="check-icon ${r.present?'ci-safe':'ci-fail'}">${r.present?'✓':'✗'}</div>
+        <div class="check-text"><h4>${esc(r.header)}</h4><p>${esc(r.description)}</p>${r.value?`<span class="code-chip">${esc(r.value)}</span>`:''}</div>
+      </div>`;
     }
-
-    function renderHeadersSection(headers) {
-      const scoreClass = getScoreClass(headers.score);
-      let items = '';
-
-      for (const r of headers.results) {
-        const status = r.present ? 'pass' : 'fail';
-        const icon = r.present ? '&#10003;' : '&#10007;';
-        items += `
-          <div class="check-item">
-            <div class="check-status status-${status}">${icon}</div>
-            <div class="check-details">
-              <h4>${escapeHtml(r.header)}</h4>
-              <p>${escapeHtml(r.description)}</p>
-              ${r.value ? `<div class="check-value">${escapeHtml(r.value)}</div>` : ''}
-            </div>
-          </div>`;
-      }
-
-      let leaks = '';
-      if (headers.infoLeaks && headers.infoLeaks.length > 0) {
-        leaks = '<h4 style="margin: 16px 0 10px; color: #fbbf24;">&#9888; חשיפת מידע</h4>';
-        for (const leak of headers.infoLeaks) {
-          leaks += `
-            <div class="info-leak-item">
-              <strong>${escapeHtml(leak.header)}:</strong> ${escapeHtml(leak.value)}
-            </div>`;
-        }
-      }
-
-      return `
-        <div class="section open">
-          <div class="section-header">
-            <h3><span class="icon">&#128272;</span> Security Headers</h3>
-            <div>
-              <span class="section-score ${scoreClass}">${headers.score}%</span>
-              <span class="arrow">&#9660;</span>
-            </div>
-          </div>
-          <div class="section-body">
-            <p style="color: var(--text-secondary); margin-bottom: 14px;">
-              ${headers.passed} מתוך ${headers.totalChecks} כותרות אבטחה נמצאו
-            </p>
-            ${items}
-            ${leaks}
-          </div>
-        </div>`;
+    let leaks = '';
+    for (const l of (h.infoLeaks||[])) {
+      leaks += `<div class="check-row"><div class="check-icon ci-warn">⚠</div><div class="check-text"><h4>חשיפת מידע: ${esc(l.header)}</h4><span class="code-chip">${esc(l.value)}</span></div></div>`;
     }
+    return `<div class="card open">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(99,102,241,0.12)">🔐</div>
+        <span class="card-title">Security Headers</span>
+        <span class="card-badge ${badgeClass(h.score)}">${h.score}%</span>
+        ${chevron()}
+      </div>
+      <div class="card-body">${rows}${leaks}</div>
+    </div>`;
+  }
 
-    function renderSslSection(ssl) {
-      const scoreClass = getScoreClass(ssl.score);
-
-      let issuesHtml = '';
-      if (ssl.issues && ssl.issues.length > 0) {
-        for (const issue of ssl.issues) {
-          const cls = issue.severity === 'high' ? 'fail' : 'warn';
-          const icon = issue.severity === 'high' ? '&#10007;' : '&#9888;';
-          issuesHtml += `
-            <div class="check-item">
-              <div class="check-status status-${cls}">${icon}</div>
-              <div class="check-details">
-                <h4>${escapeHtml(issue.message)}</h4>
-              </div>
-            </div>`;
-        }
-      }
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <h3><span class="icon">&#128274;</span> SSL/TLS</h3>
-            <div>
-              <span class="section-score ${scoreClass}">${ssl.score}%</span>
-              <span class="arrow">&#9660;</span>
-            </div>
-          </div>
-          <div class="section-body">
-            <div class="ssl-info-grid">
-              <div class="ssl-info-item">
-                <label>תקף</label>
-                <span style="color: ${ssl.valid ? '#4ade80' : '#f87171'}">${ssl.valid ? 'כן' : 'לא'}</span>
-              </div>
-              <div class="ssl-info-item">
-                <label>פרוטוקול</label>
-                <span>${escapeHtml(ssl.protocol || 'N/A')}</span>
-              </div>
-              <div class="ssl-info-item">
-                <label>צופן</label>
-                <span>${ssl.cipher ? escapeHtml(ssl.cipher.name) : 'N/A'}</span>
-              </div>
-              <div class="ssl-info-item">
-                <label>ימים לפקיעה</label>
-                <span style="color: ${ssl.daysUntilExpiry > 30 ? '#4ade80' : ssl.daysUntilExpiry > 0 ? '#fbbf24' : '#f87171'}">
-                  ${ssl.daysUntilExpiry}
-                </span>
-              </div>
-              <div class="ssl-info-item">
-                <label>מנפיק</label>
-                <span>${ssl.issuer ? escapeHtml(ssl.issuer.O || ssl.issuer.CN || 'N/A') : 'N/A'}</span>
-              </div>
-              <div class="ssl-info-item">
-                <label>תוקף עד</label>
-                <span>${ssl.validTo ? new Date(ssl.validTo).toLocaleDateString('he-IL') : 'N/A'}</span>
-              </div>
-            </div>
-            ${issuesHtml}
-          </div>
-        </div>`;
+  function renderSslCard(ssl) {
+    let issues = '';
+    for (const i of (ssl.issues||[])) {
+      issues += `<div class="check-row"><div class="check-icon ${i.severity==='high'?'ci-fail':'ci-warn'}">${i.severity==='high'?'✗':'⚠'}</div><div class="check-text"><h4>${esc(i.message)}</h4></div></div>`;
     }
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(16,185,129,0.12)">🔒</div>
+        <span class="card-title">SSL / TLS</span>
+        <span class="card-badge ${badgeClass(ssl.score)}">${ssl.score}%</span>
+        ${chevron()}
+      </div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-cell"><label>תקף</label><span style="color:${ssl.valid?'#10b981':'#ef4444'}">${ssl.valid?'✓ כן':'✗ לא'}</span></div>
+          <div class="info-cell"><label>פרוטוקול</label><span>${esc(ssl.protocol||'N/A')}</span></div>
+          <div class="info-cell"><label>ימים לפקיעה</label><span style="color:${ssl.daysUntilExpiry>30?'#10b981':ssl.daysUntilExpiry>0?'#f59e0b':'#ef4444'}">${ssl.daysUntilExpiry}</span></div>
+          <div class="info-cell"><label>מנפיק</label><span>${esc(ssl.issuer?.O||ssl.issuer?.CN||'N/A')}</span></div>
+          <div class="info-cell"><label>צופן</label><span>${esc(ssl.cipher?.name||'N/A')}</span></div>
+          <div class="info-cell"><label>תוקף עד</label><span>${ssl.validTo?new Date(ssl.validTo).toLocaleDateString('he-IL'):'N/A'}</span></div>
+        </div>${issues}
+      </div>
+    </div>`;
+  }
 
-    function renderDnsSection(dns) {
-      const scoreClass = getScoreClass(dns.score);
-
-      let secRecords = '';
-      for (const rec of (dns.securityRecords || [])) {
-        const status = rec.present ? 'pass' : 'fail';
-        const icon = rec.present ? '&#10003;' : '&#10007;';
-        secRecords += `
-          <div class="check-item">
-            <div class="check-status status-${status}">${icon}</div>
-            <div class="check-details">
-              <h4>${escapeHtml(rec.type)}</h4>
-              <p>${escapeHtml(rec.description)}</p>
-              ${rec.value && typeof rec.value === 'string' ? `<div class="check-value">${escapeHtml(rec.value)}</div>` : ''}
-            </div>
-          </div>`;
-      }
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <h3><span class="icon">&#127760;</span> DNS</h3>
-            <div>
-              <span class="section-score ${scoreClass}">${dns.score}%</span>
-              <span class="arrow">&#9660;</span>
-            </div>
-          </div>
-          <div class="section-body">
-            <div class="dns-records">
-              <div class="dns-record">
-                <label>IPv4</label>
-                <div class="value">${(dns.ipv4 || []).join(', ') || 'N/A'}</div>
-              </div>
-              <div class="dns-record">
-                <label>IPv6</label>
-                <div class="value">${(dns.ipv6 || []).join(', ') || 'N/A'}</div>
-              </div>
-              <div class="dns-record">
-                <label>Name Servers</label>
-                <div class="value">${(dns.ns || []).join(', ') || 'N/A'}</div>
-              </div>
-              <div class="dns-record">
-                <label>MX Records</label>
-                <div class="value">${(dns.mx || []).map(m => m.exchange).join(', ') || 'N/A'}</div>
-              </div>
-            </div>
-            <h4 style="margin: 18px 0 10px;">רשומות אבטחה</h4>
-            ${secRecords}
-          </div>
-        </div>`;
+  function renderDnsCard(dns) {
+    let secRows = '';
+    for (const r of (dns.securityRecords||[])) {
+      secRows += `<div class="check-row"><div class="check-icon ${r.present?'ci-safe':'ci-fail'}">${r.present?'✓':'✗'}</div><div class="check-text"><h4>${esc(r.type)}</h4><p>${esc(r.description)}</p>${r.value&&typeof r.value==='string'?`<span class="code-chip">${esc(r.value)}</span>`:''}</div></div>`;
     }
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(6,182,212,0.1)">🌐</div>
+        <span class="card-title">DNS</span>
+        <span class="card-badge ${badgeClass(dns.score)}">${dns.score}%</span>
+        ${chevron()}
+      </div>
+      <div class="card-body">
+        <div class="info-grid">
+          <div class="info-cell"><label>IPv4</label><span>${(dns.ipv4||[]).join(', ')||'N/A'}</span></div>
+          <div class="info-cell"><label>IPv6</label><span>${(dns.ipv6||[]).join(', ')||'N/A'}</span></div>
+          <div class="info-cell"><label>Name Servers</label><span>${(dns.ns||[]).slice(0,2).join(', ')||'N/A'}</span></div>
+          <div class="info-cell"><label>MX Records</label><span>${(dns.mx||[]).map(m=>m.exchange).slice(0,2).join(', ')||'N/A'}</span></div>
+        </div>${secRows}
+      </div>
+    </div>`;
+  }
 
-    function renderPortsSection(ports) {
-      const scoreClass = getScoreClass(ports.score);
-
-      let portItems = '';
-      for (const p of ports.results) {
-        if (p.status === 'open') {
-          const riskColor = p.risk === 'high' ? '#f87171' : p.risk === 'medium' ? '#fbbf24' : '#4ade80';
-          portItems += `
-            <div class="port-item">
-              <span class="port-number" style="color: ${riskColor}">${p.port}</span>
-              <div>
-                <strong>${escapeHtml(p.service)}</strong>
-                <span class="badge badge-open">פתוח</span>
-                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 3px;">${escapeHtml(p.description)}</p>
-              </div>
-            </div>`;
-        }
-      }
-
-      if (!portItems) {
-        portItems = '<p style="color: var(--text-secondary); padding: 10px 0;">לא נמצאו פורטים פתוחים מרשימת הפורטים הנפוצים</p>';
-      }
-
-      let warnings = '';
-      if (ports.warnings && ports.warnings.length > 0) {
-        for (const w of ports.warnings) {
-          warnings += `
-            <div class="check-item">
-              <div class="check-status status-fail">&#9888;</div>
-              <div class="check-details">
-                <h4>${escapeHtml(w.message)}</h4>
-              </div>
-            </div>`;
-        }
-      }
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <h3><span class="icon">&#128268;</span> סריקת פורטים</h3>
-            <div>
-              <span class="section-score ${scoreClass}">${ports.score}%</span>
-              <span class="arrow">&#9660;</span>
-            </div>
-          </div>
-          <div class="section-body">
-            <p style="color: var(--text-secondary); margin-bottom: 14px;">
-              ${ports.openPorts} פורטים פתוחים מתוך ${ports.totalScanned} שנסרקו
-            </p>
-            ${warnings}
-            <div class="port-grid">${portItems}</div>
-          </div>
-        </div>`;
+  function renderPortsCard(ports) {
+    const open = (ports.results||[]).filter(p => p.status==='open');
+    let portRows = open.length ? '<div class="port-list">' : '<p style="color:var(--text-muted);padding:14px 0;font-size:0.85rem">לא נמצאו פורטים פתוחים</p>';
+    for (const p of open) {
+      const c = p.risk==='high'?'#ef4444':p.risk==='medium'?'#f59e0b':'#10b981';
+      portRows += `<div class="port-row"><span class="port-num" style="color:${c}">${p.port}</span><div class="port-info"><strong>${esc(p.service)}</strong><p>${esc(p.description)}</p></div><span class="card-badge ${p.risk==='high'?'badge-danger':p.risk==='medium'?'badge-warn':'badge-safe'}">${p.risk||'low'}</span></div>`;
     }
-
-    function renderTechSection(tech) {
-      let techItems = '';
-
-      if (tech.detected && tech.detected.length > 0) {
-        for (const t of tech.detected) {
-          techItems += `
-            <div class="check-item">
-              <div class="check-status status-info">&#8505;</div>
-              <div class="check-details">
-                <h4>${escapeHtml(t.technology)}</h4>
-                <p>${t.evidence.map(e => escapeHtml(e)).join(' | ')}</p>
-              </div>
-            </div>`;
-        }
-      } else {
-        techItems = '<p style="color: var(--text-secondary); padding: 10px 0;">לא זוהו טכנולוגיות ספציפיות</p>';
-      }
-
-      let concerns = '';
-      if (tech.concerns && tech.concerns.length > 0) {
-        for (const c of tech.concerns) {
-          concerns += `
-            <div class="check-item">
-              <div class="check-status status-warn">&#9888;</div>
-              <div class="check-details">
-                <h4>${escapeHtml(c.message)}</h4>
-              </div>
-            </div>`;
-        }
-      }
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <h3><span class="icon">&#128736;</span> זיהוי טכנולוגיות</h3>
-            <div>
-              <span class="badge badge-tech">${tech.totalDetected} זוהו</span>
-              <span class="arrow">&#9660;</span>
-            </div>
-          </div>
-          <div class="section-body">
-            ${concerns}
-            ${techItems}
-          </div>
-        </div>`;
+    if (open.length) portRows += '</div>';
+    let warns = '';
+    for (const w of (ports.warnings||[])) {
+      warns += `<div class="check-row"><div class="check-icon ci-fail">⚠</div><div class="check-text"><h4>${esc(w.message)}</h4></div></div>`;
     }
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(245,158,11,0.1)">🔌</div>
+        <span class="card-title">סריקת פורטים</span>
+        <span class="card-badge ${badgeClass(ports.score)}">${ports.openPorts} פתוחים</span>
+        ${chevron()}
+      </div>
+      <div class="card-body">${warns}${portRows}</div>
+    </div>`;
+  }
 
-    function escapeHtml(text) {
-      if (!text) return '';
-      const div = document.createElement('div');
-      div.textContent = String(text);
-      return div.innerHTML;
+  function renderTechCard(tech) {
+    let tags = (tech.detected||[]).map(t => `<span class="tech-tag">⚙ ${esc(t.technology)}</span>`).join('');
+    if (!tags) tags = '<p style="color:var(--text-muted);font-size:0.85rem">לא זוהו טכנולוגיות ספציפיות</p>';
+    let concerns = '';
+    for (const c of (tech.concerns||[])) {
+      concerns += `<div class="check-row"><div class="check-icon ci-warn">⚠</div><div class="check-text"><h4>${esc(c.message)}</h4></div></div>`;
     }
-  </script>
+    return `<div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:rgba(99,102,241,0.1)">⚙️</div>
+        <span class="card-title">זיהוי טכנולוגיות</span>
+        <span class="card-badge badge-info">${tech.totalDetected} זוהו</span>
+        ${chevron()}
+      </div>
+      <div class="card-body">${concerns}<div class="tech-wrap">${tags}</div></div>
+    </div>`;
+  }
+</script>
 </body>
 </html>
