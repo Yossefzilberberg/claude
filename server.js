@@ -28,9 +28,13 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// CORS — localhost only
+// CORS — same origin (the app serves its own frontend)
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: ALLOWED_ORIGINS,
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
 }));
@@ -162,6 +166,7 @@ app.get('/', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`Security Testing Tool running on http://localhost:${PORT}`);
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
+app.listen(PORT, HOST, () => {
+  console.log(`Security Testing Tool running on http://${HOST}:${PORT}`);
 });
