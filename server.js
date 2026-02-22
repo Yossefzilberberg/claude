@@ -28,13 +28,9 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// CORS — same origin (the app serves its own frontend)
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:3000', 'http://127.0.0.1:3000'];
-
+// CORS — same-origin app: allow all origins (rate limiting handles abuse)
 app.use(cors({
-  origin: ALLOWED_ORIGINS,
+  origin: true,
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
 }));
