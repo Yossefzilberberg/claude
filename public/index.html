@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>כלי בדיקות אבטחה לאתרים</title>
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --border-color: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #06b6d4;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 0 30px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 12px;
+      max-width: 650px;
+      margin: 30px auto;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 1.05rem;
+      outline: none;
+      transition: border-color 0.3s;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .btn-scan {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-scan:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-scan:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--border-color);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .error-msg {
+      display: none;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 14px 20px;
+      border-radius: 10px;
+      margin: 20px auto;
+      max-width: 650px;
+      text-align: center;
+    }
+
+    .error-msg.active {
+      display: block;
+    }
+
+    #results {
+      display: none;
+    }
+
+    #results.active {
+      display: block;
+    }
+
+    .overall-score {
+      text-align: center;
+      padding: 30px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
+
+    .score-circle {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .score-circle::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      padding: 5px;
+      background: conic-gradient(var(--score-color) calc(var(--score) * 3.6deg), var(--border-color) 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+    }
+
+    .overall-score h2 {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .target-url {
+      color: var(--accent);
+      font-size: 0.95rem;
+      direction: ltr;
+    }
+
+    .section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .section-header:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .section-header h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+    }
+
+    .section-header .icon {
+      font-size: 1.3rem;
+    }
+
+    .section-score {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .score-high { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .score-medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .score-low { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    .section-body {
+      display: none;
+      padding: 0 24px 20px;
+    }
+
+    .section.open .section-body {
+      display: block;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    }
+
+    .check-item:last-child {
+      border-bottom: none;
+    }
+
+    .check-status {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    .status-pass { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .status-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .status-warn { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .status-info { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+
+    .check-details h4 {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+
+    .check-details p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .check-value {
+      direction: ltr;
+      text-align: left;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: var(--info);
+      margin-top: 6px;
+      word-break: break-all;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    .badge-tech { background: rgba(99, 102, 241, 0.2); color: #a5b4fc; }
+    .badge-open { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .badge-closed { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+    .badge-filtered { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+    .port-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+
+    .port-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 10px;
+    }
+
+    .port-number {
+      font-family: monospace;
+      font-weight: 700;
+      font-size: 0.95rem;
+      min-width: 55px;
+      direction: ltr;
+    }
+
+    .ssl-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ssl-info-item {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 12px 16px;
+      border-radius: 10px;
+    }
+
+    .ssl-info-item label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .ssl-info-item span {
+      font-weight: 600;
+      font-size: 0.95rem;
+      direction: ltr;
+      display: block;
+      text-align: left;
+    }
+
+    .dns-records {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 10px;
+    }
+
+    .dns-record {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 12px 16px;
+      border-radius: 10px;
+    }
+
+    .dns-record label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-bottom: 6px;
+    }
+
+    .dns-record .value {
+      font-family: monospace;
+      font-size: 0.85rem;
+      direction: ltr;
+      text-align: left;
+      word-break: break-all;
+    }
+
+    .info-leak-item {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      padding: 10px 16px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .timestamp {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 20px;
+      padding-bottom: 40px;
+    }
+
+    .arrow {
+      transition: transform 0.3s;
+      color: var(--text-secondary);
+    }
+
+    .section.open .arrow {
+      transform: rotate(180deg);
+    }
+
+    @media (max-width: 640px) {
+      header h1 { font-size: 1.6rem; }
+      .search-box { flex-direction: column; }
+      .btn-scan { width: 100%; }
+      .port-grid, .ssl-info-grid, .dns-records { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>&#128737; כלי בדיקות אבטחה לאתרים</h1>
+      <p>בדוק את רמת האבטחה של האתר שלך - Headers, SSL, DNS, פורטים וזיהוי טכנולוגיות</p>
+    </header>
+
+    <div class="search-box">
+      <input type="text" id="urlInput" placeholder="example.com" autocomplete="off">
+      <button class="btn-scan" id="scanBtn" onclick="startScan()">סרוק עכשיו</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>סורק את האתר... אנא המתן</p>
+    </div>
+
+    <div id="results">
+      <div class="overall-score" id="overallScore"></div>
+      <div id="sectionsContainer"></div>
+      <div class="timestamp" id="timestamp"></div>
+    </div>
+  </div>
+
+  <script>
+    // Enter key triggers scan
+    document.getElementById('urlInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') startScan();
+    });
+
+    async function startScan() {
+      const url = document.getElementById('urlInput').value.trim();
+      if (!url) return;
+
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+      const errorMsg = document.getElementById('errorMsg');
+      const scanBtn = document.getElementById('scanBtn');
+
+      errorMsg.classList.remove('active');
+      results.classList.remove('active');
+      loading.classList.add('active');
+      scanBtn.disabled = true;
+      scanBtn.textContent = 'סורק...';
+
+      try {
+        const response = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Scan failed');
+        }
+
+        loading.classList.remove('active');
+        renderResults(data);
+        results.classList.add('active');
+      } catch (err) {
+        loading.classList.remove('active');
+        errorMsg.textContent = err.message || 'שגיאה בסריקה. נסה שוב.';
+        errorMsg.classList.add('active');
+      } finally {
+        scanBtn.disabled = false;
+        scanBtn.textContent = 'סרוק עכשיו';
+      }
+    }
+
+    function getScoreClass(score) {
+      if (score >= 70) return 'score-high';
+      if (score >= 40) return 'score-medium';
+      return 'score-low';
+    }
+
+    function getScoreColor(score) {
+      if (score >= 70) return '#22c55e';
+      if (score >= 40) return '#f59e0b';
+      return '#ef4444';
+    }
+
+    function renderResults(data) {
+      // Calculate overall score
+      const scores = [];
+      if (data.headers && !data.headers.error) scores.push(data.headers.score);
+      if (data.ssl && !data.ssl.error) scores.push(data.ssl.score);
+      if (data.dns && !data.dns.error) scores.push(data.dns.score);
+      if (data.ports && !data.ports.error) scores.push(data.ports.score);
+      const overall = scores.length > 0
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        : 0;
+
+      const color = getScoreColor(overall);
+      document.getElementById('overallScore').innerHTML = `
+        <div class="score-circle" style="--score: ${overall}; --score-color: ${color}; color: ${color}">
+          ${overall}%
+        </div>
+        <h2>ציון אבטחה כולל</h2>
+        <div class="target-url">${escapeHtml(data.target)}</div>
+      `;
+
+      const container = document.getElementById('sectionsContainer');
+      container.innerHTML = '';
+
+      // Headers section
+      if (data.headers && !data.headers.error) {
+        container.innerHTML += renderHeadersSection(data.headers);
+      }
+
+      // SSL section
+      if (data.ssl && !data.ssl.error) {
+        container.innerHTML += renderSslSection(data.ssl);
+      }
+
+      // DNS section
+      if (data.dns && !data.dns.error) {
+        container.innerHTML += renderDnsSection(data.dns);
+      }
+
+      // Ports section
+      if (data.ports && !data.ports.error) {
+        container.innerHTML += renderPortsSection(data.ports);
+      }
+
+      // Tech section
+      if (data.tech && !data.tech.error) {
+        container.innerHTML += renderTechSection(data.tech);
+      }
+
+      // Add click handlers for sections
+      document.querySelectorAll('.section-header').forEach((header) => {
+        header.addEventListener('click', () => {
+          header.parentElement.classList.toggle('open');
+        });
+      });
+
+      document.getElementById('timestamp').textContent =
+        `סריקה בוצעה ב: ${new Date(data.timestamp).toLocaleString('he-IL')}`;
+    }
+
+    function renderHeadersSection(headers) {
+      const scoreClass = getScoreClass(headers.score);
+      let items = '';
+
+      for (const r of headers.results) {
+        const status = r.present ? 'pass' : 'fail';
+        const icon = r.present ? '&#10003;' : '&#10007;';
+        items += `
+          <div class="check-item">
+            <div class="check-status status-${status}">${icon}</div>
+            <div class="check-details">
+              <h4>${escapeHtml(r.header)}</h4>
+              <p>${escapeHtml(r.description)}</p>
+              ${r.value ? `<div class="check-value">${escapeHtml(r.value)}</div>` : ''}
+            </div>
+          </div>`;
+      }
+
+      let leaks = '';
+      if (headers.infoLeaks && headers.infoLeaks.length > 0) {
+        leaks = '<h4 style="margin: 16px 0 10px; color: #fbbf24;">&#9888; חשיפת מידע</h4>';
+        for (const leak of headers.infoLeaks) {
+          leaks += `
+            <div class="info-leak-item">
+              <strong>${escapeHtml(leak.header)}:</strong> ${escapeHtml(leak.value)}
+            </div>`;
+        }
+      }
+
+      return `
+        <div class="section open">
+          <div class="section-header">
+            <h3><span class="icon">&#128272;</span> Security Headers</h3>
+            <div>
+              <span class="section-score ${scoreClass}">${headers.score}%</span>
+              <span class="arrow">&#9660;</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <p style="color: var(--text-secondary); margin-bottom: 14px;">
+              ${headers.passed} מתוך ${headers.totalChecks} כותרות אבטחה נמצאו
+            </p>
+            ${items}
+            ${leaks}
+          </div>
+        </div>`;
+    }
+
+    function renderSslSection(ssl) {
+      const scoreClass = getScoreClass(ssl.score);
+
+      let issuesHtml = '';
+      if (ssl.issues && ssl.issues.length > 0) {
+        for (const issue of ssl.issues) {
+          const cls = issue.severity === 'high' ? 'fail' : 'warn';
+          const icon = issue.severity === 'high' ? '&#10007;' : '&#9888;';
+          issuesHtml += `
+            <div class="check-item">
+              <div class="check-status status-${cls}">${icon}</div>
+              <div class="check-details">
+                <h4>${escapeHtml(issue.message)}</h4>
+              </div>
+            </div>`;
+        }
+      }
+
+      return `
+        <div class="section">
+          <div class="section-header">
+            <h3><span class="icon">&#128274;</span> SSL/TLS</h3>
+            <div>
+              <span class="section-score ${scoreClass}">${ssl.score}%</span>
+              <span class="arrow">&#9660;</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="ssl-info-grid">
+              <div class="ssl-info-item">
+                <label>תקף</label>
+                <span style="color: ${ssl.valid ? '#4ade80' : '#f87171'}">${ssl.valid ? 'כן' : 'לא'}</span>
+              </div>
+              <div class="ssl-info-item">
+                <label>פרוטוקול</label>
+                <span>${escapeHtml(ssl.protocol || 'N/A')}</span>
+              </div>
+              <div class="ssl-info-item">
+                <label>צופן</label>
+                <span>${ssl.cipher ? escapeHtml(ssl.cipher.name) : 'N/A'}</span>
+              </div>
+              <div class="ssl-info-item">
+                <label>ימים לפקיעה</label>
+                <span style="color: ${ssl.daysUntilExpiry > 30 ? '#4ade80' : ssl.daysUntilExpiry > 0 ? '#fbbf24' : '#f87171'}">
+                  ${ssl.daysUntilExpiry}
+                </span>
+              </div>
+              <div class="ssl-info-item">
+                <label>מנפיק</label>
+                <span>${ssl.issuer ? escapeHtml(ssl.issuer.O || ssl.issuer.CN || 'N/A') : 'N/A'}</span>
+              </div>
+              <div class="ssl-info-item">
+                <label>תוקף עד</label>
+                <span>${ssl.validTo ? new Date(ssl.validTo).toLocaleDateString('he-IL') : 'N/A'}</span>
+              </div>
+            </div>
+            ${issuesHtml}
+          </div>
+        </div>`;
+    }
+
+    function renderDnsSection(dns) {
+      const scoreClass = getScoreClass(dns.score);
+
+      let secRecords = '';
+      for (const rec of (dns.securityRecords || [])) {
+        const status = rec.present ? 'pass' : 'fail';
+        const icon = rec.present ? '&#10003;' : '&#10007;';
+        secRecords += `
+          <div class="check-item">
+            <div class="check-status status-${status}">${icon}</div>
+            <div class="check-details">
+              <h4>${escapeHtml(rec.type)}</h4>
+              <p>${escapeHtml(rec.description)}</p>
+              ${rec.value && typeof rec.value === 'string' ? `<div class="check-value">${escapeHtml(rec.value)}</div>` : ''}
+            </div>
+          </div>`;
+      }
+
+      return `
+        <div class="section">
+          <div class="section-header">
+            <h3><span class="icon">&#127760;</span> DNS</h3>
+            <div>
+              <span class="section-score ${scoreClass}">${dns.score}%</span>
+              <span class="arrow">&#9660;</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="dns-records">
+              <div class="dns-record">
+                <label>IPv4</label>
+                <div class="value">${(dns.ipv4 || []).join(', ') || 'N/A'}</div>
+              </div>
+              <div class="dns-record">
+                <label>IPv6</label>
+                <div class="value">${(dns.ipv6 || []).join(', ') || 'N/A'}</div>
+              </div>
+              <div class="dns-record">
+                <label>Name Servers</label>
+                <div class="value">${(dns.ns || []).join(', ') || 'N/A'}</div>
+              </div>
+              <div class="dns-record">
+                <label>MX Records</label>
+                <div class="value">${(dns.mx || []).map(m => m.exchange).join(', ') || 'N/A'}</div>
+              </div>
+            </div>
+            <h4 style="margin: 18px 0 10px;">רשומות אבטחה</h4>
+            ${secRecords}
+          </div>
+        </div>`;
+    }
+
+    function renderPortsSection(ports) {
+      const scoreClass = getScoreClass(ports.score);
+
+      let portItems = '';
+      for (const p of ports.results) {
+        if (p.status === 'open') {
+          const riskColor = p.risk === 'high' ? '#f87171' : p.risk === 'medium' ? '#fbbf24' : '#4ade80';
+          portItems += `
+            <div class="port-item">
+              <span class="port-number" style="color: ${riskColor}">${p.port}</span>
+              <div>
+                <strong>${escapeHtml(p.service)}</strong>
+                <span class="badge badge-open">פתוח</span>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 3px;">${escapeHtml(p.description)}</p>
+              </div>
+            </div>`;
+        }
+      }
+
+      if (!portItems) {
+        portItems = '<p style="color: var(--text-secondary); padding: 10px 0;">לא נמצאו פורטים פתוחים מרשימת הפורטים הנפוצים</p>';
+      }
+
+      let warnings = '';
+      if (ports.warnings && ports.warnings.length > 0) {
+        for (const w of ports.warnings) {
+          warnings += `
+            <div class="check-item">
+              <div class="check-status status-fail">&#9888;</div>
+              <div class="check-details">
+                <h4>${escapeHtml(w.message)}</h4>
+              </div>
+            </div>`;
+        }
+      }
+
+      return `
+        <div class="section">
+          <div class="section-header">
+            <h3><span class="icon">&#128268;</span> סריקת פורטים</h3>
+            <div>
+              <span class="section-score ${scoreClass}">${ports.score}%</span>
+              <span class="arrow">&#9660;</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <p style="color: var(--text-secondary); margin-bottom: 14px;">
+              ${ports.openPorts} פורטים פתוחים מתוך ${ports.totalScanned} שנסרקו
+            </p>
+            ${warnings}
+            <div class="port-grid">${portItems}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderTechSection(tech) {
+      let techItems = '';
+
+      if (tech.detected && tech.detected.length > 0) {
+        for (const t of tech.detected) {
+          techItems += `
+            <div class="check-item">
+              <div class="check-status status-info">&#8505;</div>
+              <div class="check-details">
+                <h4>${escapeHtml(t.technology)}</h4>
+                <p>${t.evidence.map(e => escapeHtml(e)).join(' | ')}</p>
+              </div>
+            </div>`;
+        }
+      } else {
+        techItems = '<p style="color: var(--text-secondary); padding: 10px 0;">לא זוהו טכנולוגיות ספציפיות</p>';
+      }
+
+      let concerns = '';
+      if (tech.concerns && tech.concerns.length > 0) {
+        for (const c of tech.concerns) {
+          concerns += `
+            <div class="check-item">
+              <div class="check-status status-warn">&#9888;</div>
+              <div class="check-details">
+                <h4>${escapeHtml(c.message)}</h4>
+              </div>
+            </div>`;
+        }
+      }
+
+      return `
+        <div class="section">
+          <div class="section-header">
+            <h3><span class="icon">&#128736;</span> זיהוי טכנולוגיות</h3>
+            <div>
+              <span class="badge badge-tech">${tech.totalDetected} זוהו</span>
+              <span class="arrow">&#9660;</span>
+            </div>
+          </div>
+          <div class="section-body">
+            ${concerns}
+            ${techItems}
+          </div>
+        </div>`;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = String(text);
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
